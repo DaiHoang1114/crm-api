@@ -8,7 +8,10 @@ pool:
 
 variables:
   buildConfiguration: 'Release'
-  apiProject: 'src/MyCRM.Client/MyCRM.Client.csproj'  # adjust path if different
+  # Use solution file instead of single project
+  solution: '**/*.sln'
+  # Or specify the correct API project path
+  apiProject: 'src/MyCRM.Api/MyCRM.Api.csproj'  # adjust path if different
 
 steps:
 
@@ -24,24 +27,24 @@ steps:
   displayName: 'Restore NuGet packages'
   inputs:
     command: 'restore'
-    projects: '$(apiProject)'
+    projects: '$(solution)'  # or $(apiProject)
 
 # Build solution
 - task: DotNetCoreCLI@2
-  displayName: 'Build API'
+  displayName: 'Build Solution'
   inputs:
     command: 'build'
-    projects: '$(apiProject)'
-    arguments: '--configuration $(buildConfiguration)'
+    projects: '$(solution)'  # or $(apiProject)
+    arguments: '--configuration $(buildConfiguration) --no-restore'
 
-# Run unit tests (if you add test projects later)
+# Run unit tests
 - task: DotNetCoreCLI@2
   displayName: 'Run Tests'
   inputs:
     command: 'test'
-    projects: '**/*Tests/*.csproj'
-    arguments: '--configuration $(buildConfiguration)'
-  continueOnError: true   # optional
+    projects: '**/*.Tests.csproj'
+    arguments: '--configuration $(buildConfiguration) --no-build --collect:"XPlat Code Coverage"'
+  continueOnError: false  # Fail build if tests fail
 
 # Publish the API
 - task: DotNetCoreCLI@2
@@ -50,7 +53,8 @@ steps:
     command: 'publish'
     publishWebProjects: false
     projects: '$(apiProject)'
-    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+    arguments: '--configuration $(buildConfiguration) --no-build --output $(Build.ArtifactStagingDirectory)'
+    zipAfterPublish: true
 
 # Save artifacts for CD pipeline
 - task: PublishBuildArtifacts@1
