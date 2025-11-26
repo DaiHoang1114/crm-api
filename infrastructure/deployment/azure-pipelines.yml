@@ -11,7 +11,7 @@ variables:
   # Use solution file instead of single project
   solution: '**/*.sln'
   # Or specify the correct API project path
-  apiProject: 'src/MyCRM.Client/MyCRM.Client.csproj'  # adjust path if different
+  apiProject: '**/MyCRM.Client.csproj'  # Use wildcard pattern to find it
 
 steps:
 
